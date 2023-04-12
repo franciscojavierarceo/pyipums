@@ -2,11 +2,28 @@ import os
 import xml.etree.ElementTree as ET
 from typing import Dict
 
-_DEFAULT_NAMESPACE_ = '{ddi:codebook:2_5}'
+# Handle namespaces
+DEFAULT_NAMESPACE = '{ddi:codebook:2_5}'
+NAMESPACES = {'ddi': 'ddi:codebook:2_5'}
+TITLE_XPATH = "ddi:docDscr/ddi:citation/ddi:titlStmt/"
+FILE_TEXT_XPATH = "ddi:fileDscr/ddi:fileTxt/"
 
 def remove_namespace(x: str) -> str:
     if x:
-        return x.replace(_DEFAULT_NAMESPACE_,"")
+        return x.replace(DEFAULT_NAMESPACE,"")
+
+def get_file_metadata(xml_object, metadata: Dict={}):
+    # Extract the data file information
+    metadata = {"codebook_id": metadata.get("ID")}
+    for element in xml_object.findall(TITLE_XPATH, namespaces=NAMESPACES):
+        element_key = remove_namespace(element.tag)
+        metadata[element_key] = element.text
+
+    for element in xml_object.findall(FILE_TEXT_XPATH, namespaces=NAMESPACES):
+        element_key = remove_namespace(element.tag)
+        metadata[element_key] = element.text
+
+    return metadata
 
 def get_field_metadata():
     return None
@@ -36,23 +53,10 @@ def read_ipums_ddi(file_path: str) -> Dict:
     # The codebook element is the root
     codebook = tree.getroot()
 
-    # Handle namespaces
-    namespaces = {'ddi': 'ddi:codebook:2_5'}
-
-    # Extract the data file information
-    file_metadata = {"codebook_id": codebook.get("ID")}
-    for element in codebook.findall("ddi:docDscr/ddi:citation/ddi:titlStmt/", namespaces=namespaces):
-        element_key = remove_namespace(element.tag)
-        file_metadata[element_key] = element.text
-
-    for element in codebook.findall("ddi:fileDscr/ddi:fileTxt/", namespaces=namespaces):
-        element_key = remove_namespace(element.tag)
-        file_metadata[element_key] = element.text
-
-    ddi_dict['file_metadata'] = file_metadata
+    ddi_dict['file_metadata'] = get_file_metadata(codebook)
 
     # Extract variable information
-    var_elements = codebook.findall("ddi:dataDscr/ddi:var", namespaces)
+    var_elements = codebook.findall("ddi:dataDscr/ddi:var", namespaces=NAMESPACES)
     column_metadata = []
     for var_elem in var_elements:
         var_dict = {
@@ -75,8 +79,8 @@ def read_ipums_ddi(file_path: str) -> Dict:
 
             elif remove_namespace(child.tag) == 'catgry':
                 field_metadata.append({
-                    'category_value':  child.findtext("ddi:catValu", namespaces=namespaces),
-                    'category_label':  child.findtext("ddi:labl", namespaces=namespaces),
+                    'category_value':  child.findtext("ddi:catValu", namespaces=NAMESPACES),
+                    'category_label':  child.findtext("ddi:labl", namespaces=NAMESPACES),
                 })
 
             elif remove_namespace(child.tag) == 'location':
