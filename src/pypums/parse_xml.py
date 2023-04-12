@@ -8,6 +8,9 @@ def remove_namespace(x: str) -> str:
     if x:
         return x.replace(_DEFAULT_NAMESPACE_,"")
 
+def get_field_metadata():
+    return None
+
 def read_ipums_ddi(file_path: str) -> Dict:
     """
     :param file_path:
@@ -55,35 +58,42 @@ def read_ipums_ddi(file_path: str) -> Dict:
         var_dict = {
             "name": var_elem.get("ID"),
             "field_type": var_elem.get("intrvl"),
-            "tag": remove_namespace(var_elem.tag),
-            "text": remove_namespace(var_elem.text),
             "files": var_elem.get("files"),
         }
         field_metadata = []
         # now get child stuff
         for child in list(var_elem):
-            if remove_namespace(child.tag) == var_dict['name']:
+            if remove_namespace(child.tag) == 'txt':
                 var_dict['description'] = remove_namespace(child.text)
 
-            if remove_namespace(child.tag) == 'varFormat':
-                field_metadata.append({
-                    "tag": remove_namespace(child.tag),
-                    "text": remove_namespace(child.text),
-                    "schema": child.attrib.get("schema"),
-                    "data_type": child.attrib.get("type"),
-                })
-            if remove_namespace(child.tag) == 'catgry':
+            elif remove_namespace(child.tag) == 'labl':
+                var_dict['label'] = remove_namespace(child.text)
+
+            elif remove_namespace(child.tag) == 'varFormat':
+                var_dict['schema'] = child.attrib.get("schema")
+                var_dict['data_type'] = child.attrib.get("type")
+
+            elif remove_namespace(child.tag) == 'catgry':
                 field_metadata.append({
                     'category_value':  child.findtext("ddi:catValu", namespaces=namespaces),
                     'category_label':  child.findtext("ddi:labl", namespaces=namespaces),
                 })
+
+            elif remove_namespace(child.tag) == 'location':
+                var_dict['location_end_pos'] = child.attrib.get("EndPos")
+                var_dict['location_start_pos'] = child.attrib.get("StartPos")
+                var_dict['location_width'] = child.attrib.get("width")
+
+            elif remove_namespace(child.tag) == 'concept':
+                var_dict['concept'] = remove_namespace(child.text)
+
             else:
                 field_metadata.append({
                     'tag': remove_namespace(child.tag),
                     'text': remove_namespace(child.text),
                 })
 
-            var_dict['field_metadata'] = field_metadata
+        var_dict['field_metadata'] = field_metadata
 
         ddi_dict[var_dict['name']] = var_dict
         column_metadata.append(
