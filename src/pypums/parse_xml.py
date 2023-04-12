@@ -2,6 +2,12 @@ import os
 import xml.etree.ElementTree as ET
 from typing import Dict
 
+_DEFAULT_NAMESPACE_ = '{ddi:codebook:2_5}'
+
+def remove_namespace(x: str) -> str:
+    if x:
+        return x.replace(_DEFAULT_NAMESPACE_,"")
+
 def read_ipums_ddi(file_path: str) -> Dict:
     """
     :param file_path:
@@ -31,33 +37,55 @@ def read_ipums_ddi(file_path: str) -> Dict:
     namespaces = {'ddi': 'ddi:codebook:2_5'}
 
     # Extract the data file information
-    file_desc = codebook.find("ddi:fileDscr", namespaces)
-    file_id = file_desc.get("ID")
-    file_title = file_desc.findtext("ddi:titlStmt/ddi:titl", namespaces=namespaces)
+    file_metadata = {"codebook_id": codebook.get("ID")}
+    for element in codebook.findall("ddi:docDscr/ddi:citation/ddi:titlStmt/", namespaces=namespaces):
+        element_key = remove_namespace(element.tag)
+        file_metadata[element_key] = element.text
 
+    for element in codebook.findall("ddi:fileDscr/ddi:fileTxt/", namespaces=namespaces):
+        element_key = remove_namespace(element.tag)
+        file_metadata[element_key] = element.text
+
+    ddi_dict['file_metadata'] = file_metadata
     # Extract variable information
-    variables = []
-    for var_elem in codebook.findall("ddi:dataDscr/ddi:var", namespaces):
-        var = {
-            "name": var_elem.get("name"),
-            "label": var_elem.get("labl"),
-            "categories": []
+    var_elements = codebook.findall("ddi:dataDscr/ddi:var", namespaces)
+    for var_elem in var_elements:
+        var_dict = {
+            "name": var_elem.get("ID"),
+            "field_type": var_elem.get("intrvl"),
+            "tag": remove_namespace(var_elem.tag),
+            "text": remove_namespace(var_elem.text),
+            "files": var_elem.get("files"),
         }
+        field_metadata = []
+        # now get child stuff
+        for child in list(var_elem):
+            if remove_namespace(child.tag) == var_dict['name']:
+                var_dict['description'] = remove_namespace(child.text)
 
-        # Extract category information
-        for cat_elem in var_elem.findall("ddi:catgry", namespaces):
-            cat = {
-                "code": cat_elem.findtext("ddi:catValu", namespaces=namespaces),
-                "label": cat_elem.get("labl")
-            }
-            var["categories"].append(cat)
+            if remove_namespace(child.tag) == 'varFormat':
+                field_metadata.append({
+                    "tag": remove_namespace(child.tag),
+                    "text": remove_namespace(child.text),
+                    "schema": child.attrib.get("schema"),
+                    "data_type": child.attrib.get("type"),
+                })
+            if remove_namespace(child.tag) == 'catgry':
+                field_metadata.append({
+                    'category_value':  child.findtext("ddi:catValu", namespaces=namespaces),
+                    'category_label':  child.findtext("ddi:labl", namespaces=namespaces),
+                })
+            else:
+                field_metadata.append({
+                    'tag': remove_namespace(child.tag),
+                    'text': remove_namespace(child.text),
+                })
 
-        variables.append(var)
+            var_dict['field_metadata'] = field_metadata
 
-    # Create the DDI object
-    ddi = {
-        "file_id": file_id,
-        "file_title": file_title,
-        "variables": variables
-    }
-    return ddi
+        ddi_dict['metadata'] = var_dict
+
+    return ddi_dict
+
+
+
