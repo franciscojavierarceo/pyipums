@@ -47,8 +47,10 @@ def read_ipums_ddi(file_path: str) -> Dict:
         file_metadata[element_key] = element.text
 
     ddi_dict['file_metadata'] = file_metadata
+
     # Extract variable information
     var_elements = codebook.findall("ddi:dataDscr/ddi:var", namespaces)
+    column_metadata = []
     for var_elem in var_elements:
         var_dict = {
             "name": var_elem.get("ID"),
@@ -83,7 +85,14 @@ def read_ipums_ddi(file_path: str) -> Dict:
 
             var_dict['field_metadata'] = field_metadata
 
-        ddi_dict['metadata'] = var_dict
+        ddi_dict[var_dict['name']] = var_dict
+        column_metadata.append(
+                (var_dict['name'], var_dict['field_type'])
+            )
+
+    ddi_dict['column_metadata'] = column_metadata
+    ddi_dict['columns'] = [r[0] for r in column_metadata]
+    ddi_dict['column_types'] = [r[1] for r in column_metadata]
 
     return ddi_dict
 
