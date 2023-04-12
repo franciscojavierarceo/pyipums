@@ -1,6 +1,6 @@
 import os
 import xml.etree.ElementTree as ET
-from typing import Dict
+from typing import Dict, Tuple
 
 # Handle namespaces
 DEFAULT_NAMESPACE = '{ddi:codebook:2_5}'
@@ -9,13 +9,24 @@ TITLE_XPATH = "ddi:docDscr/ddi:citation/ddi:titlStmt/"
 FILE_TEXT_XPATH = "ddi:fileDscr/ddi:fileTxt/"
 VARIABLES_XPATH = "ddi:dataDscr/ddi:var"
 
+type_dict = {
+    "discrete": str,
+    "contin": float,
+}
+
+def _to_int(x: str) -> int:
+    assert isinstance(x, str)
+    if x:
+        return int(x)
+
 def remove_namespace(x: str) -> str:
     if x:
-        return x.replace(DEFAULT_NAMESPACE,"")
+        return x.replace(DEFAULT_NAMESPACE, "")
 
-def get_file_metadata(xml_object, metadata: Dict={}) -> Dict:
+
+def get_file_metadata(xml_object, metadata: Dict = {}) -> Dict:
     # Extract the data file information
-    metadata = {"codebook_id": metadata.get("ID")}
+    metadata = {"codebook_id": xml_object.get("ID")}
     for element in xml_object.findall(TITLE_XPATH, namespaces=NAMESPACES):
         element_key = remove_namespace(element.tag)
         metadata[element_key] = element.text
@@ -26,10 +37,11 @@ def get_file_metadata(xml_object, metadata: Dict={}) -> Dict:
 
     return metadata
 
-def get_field_metadata(xml_object, out_dict: Dict={}) -> Dict:
+
+def get_field_metadata(xml_object, out_dict: Dict = {}) -> Dict:
     # Extract variable information
     var_elements = xml_object.findall(VARIABLES_XPATH, namespaces=NAMESPACES)
-    column_metadata = []
+    column_metadata, col_dtypes, col_specs = [], [], []
     for var_elem in var_elements:
         var_dict = {
             "name": var_elem.get("ID"),
@@ -56,9 +68,9 @@ def get_field_metadata(xml_object, out_dict: Dict={}) -> Dict:
                 })
 
             elif remove_namespace(child.tag) == 'location':
-                var_dict['location_end_pos'] = child.attrib.get("EndPos")
-                var_dict['location_start_pos'] = child.attrib.get("StartPos")
-                var_dict['location_width'] = child.attrib.get("width")
+                var_dict['location_start_pos'] = _to_int(child.attrib.get("StartPos"))
+                var_dict['location_end_pos'] = _to_int(child.attrib.get("EndPos"))
+                var_dict['location_width'] = _to_int(child.attrib.get("width"))
 
             elif remove_namespace(child.tag) == 'concept':
                 var_dict['concept'] = remove_namespace(child.text)
@@ -75,11 +87,19 @@ def get_field_metadata(xml_object, out_dict: Dict={}) -> Dict:
         column_metadata.append(
             (var_dict['name'], var_dict['field_type'])
         )
+        col_specs.append(
+            # Note: Python uses 0 based indexing
+            (var_dict['location_start_pos'] - 1, var_dict['location_end_pos'])
+        )
+        col_dtypes.append(type_dict[var_dict['field_type']])
 
     out_dict['column_metadata'] = column_metadata
     out_dict['columns'] = [r[0] for r in column_metadata]
     out_dict['column_types'] = [r[1] for r in column_metadata]
+    out_dict['column_specs'] = col_specs
+    out_dict['column_dtypes'] = col_dtypes
     return out_dict
+
 
 def read_ipums_ddi(file_path: str) -> Dict:
     """
@@ -110,6 +130,3 @@ def read_ipums_ddi(file_path: str) -> Dict:
     ddi_dict = get_field_metadata(codebook, ddi_dict)
 
     return ddi_dict
-
-
-
