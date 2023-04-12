@@ -7,12 +7,13 @@ DEFAULT_NAMESPACE = '{ddi:codebook:2_5}'
 NAMESPACES = {'ddi': 'ddi:codebook:2_5'}
 TITLE_XPATH = "ddi:docDscr/ddi:citation/ddi:titlStmt/"
 FILE_TEXT_XPATH = "ddi:fileDscr/ddi:fileTxt/"
+VARIABLES_XPATH = "ddi:dataDscr/ddi:var"
 
 def remove_namespace(x: str) -> str:
     if x:
         return x.replace(DEFAULT_NAMESPACE,"")
 
-def get_file_metadata(xml_object, metadata: Dict={}):
+def get_file_metadata(xml_object, metadata: Dict={}) -> Dict:
     # Extract the data file information
     metadata = {"codebook_id": metadata.get("ID")}
     for element in xml_object.findall(TITLE_XPATH, namespaces=NAMESPACES):
@@ -25,8 +26,60 @@ def get_file_metadata(xml_object, metadata: Dict={}):
 
     return metadata
 
-def get_field_metadata():
-    return None
+def get_field_metadata(xml_object, out_dict: Dict={}) -> Dict:
+    # Extract variable information
+    var_elements = xml_object.findall(VARIABLES_XPATH, namespaces=NAMESPACES)
+    column_metadata = []
+    for var_elem in var_elements:
+        var_dict = {
+            "name": var_elem.get("ID"),
+            "field_type": var_elem.get("intrvl"),
+            "files": var_elem.get("files"),
+        }
+        field_metadata = []
+        # now get child stuff
+        for child in list(var_elem):
+            if remove_namespace(child.tag) == 'txt':
+                var_dict['description'] = remove_namespace(child.text)
+
+            elif remove_namespace(child.tag) == 'labl':
+                var_dict['label'] = remove_namespace(child.text)
+
+            elif remove_namespace(child.tag) == 'varFormat':
+                var_dict['schema'] = child.attrib.get("schema")
+                var_dict['data_type'] = child.attrib.get("type")
+
+            elif remove_namespace(child.tag) == 'catgry':
+                field_metadata.append({
+                    'category_value': child.findtext("ddi:catValu", namespaces=NAMESPACES),
+                    'category_label': child.findtext("ddi:labl", namespaces=NAMESPACES),
+                })
+
+            elif remove_namespace(child.tag) == 'location':
+                var_dict['location_end_pos'] = child.attrib.get("EndPos")
+                var_dict['location_start_pos'] = child.attrib.get("StartPos")
+                var_dict['location_width'] = child.attrib.get("width")
+
+            elif remove_namespace(child.tag) == 'concept':
+                var_dict['concept'] = remove_namespace(child.text)
+
+            else:
+                field_metadata.append({
+                    'tag': remove_namespace(child.tag),
+                    'text': remove_namespace(child.text),
+                })
+
+        var_dict['field_metadata'] = field_metadata
+
+        out_dict[var_dict['name']] = var_dict
+        column_metadata.append(
+            (var_dict['name'], var_dict['field_type'])
+        )
+
+    out_dict['column_metadata'] = column_metadata
+    out_dict['columns'] = [r[0] for r in column_metadata]
+    out_dict['column_types'] = [r[1] for r in column_metadata]
+    return out_dict
 
 def read_ipums_ddi(file_path: str) -> Dict:
     """
@@ -50,63 +103,11 @@ def read_ipums_ddi(file_path: str) -> Dict:
     """
     ddi_dict = {}
     tree = ET.parse(file_path)
+
     # The codebook element is the root
     codebook = tree.getroot()
-
     ddi_dict['file_metadata'] = get_file_metadata(codebook)
-
-    # Extract variable information
-    var_elements = codebook.findall("ddi:dataDscr/ddi:var", namespaces=NAMESPACES)
-    column_metadata = []
-    for var_elem in var_elements:
-        var_dict = {
-            "name": var_elem.get("ID"),
-            "field_type": var_elem.get("intrvl"),
-            "files": var_elem.get("files"),
-        }
-        field_metadata = []
-        # now get child stuff
-        for child in list(var_elem):
-            if remove_namespace(child.tag) == 'txt':
-                var_dict['description'] = remove_namespace(child.text)
-
-            elif remove_namespace(child.tag) == 'labl':
-                var_dict['label'] = remove_namespace(child.text)
-
-            elif remove_namespace(child.tag) == 'varFormat':
-                var_dict['schema'] = child.attrib.get("schema")
-                var_dict['data_type'] = child.attrib.get("type")
-
-            elif remove_namespace(child.tag) == 'catgry':
-                field_metadata.append({
-                    'category_value':  child.findtext("ddi:catValu", namespaces=NAMESPACES),
-                    'category_label':  child.findtext("ddi:labl", namespaces=NAMESPACES),
-                })
-
-            elif remove_namespace(child.tag) == 'location':
-                var_dict['location_end_pos'] = child.attrib.get("EndPos")
-                var_dict['location_start_pos'] = child.attrib.get("StartPos")
-                var_dict['location_width'] = child.attrib.get("width")
-
-            elif remove_namespace(child.tag) == 'concept':
-                var_dict['concept'] = remove_namespace(child.text)
-
-            else:
-                field_metadata.append({
-                    'tag': remove_namespace(child.tag),
-                    'text': remove_namespace(child.text),
-                })
-
-        var_dict['field_metadata'] = field_metadata
-
-        ddi_dict[var_dict['name']] = var_dict
-        column_metadata.append(
-                (var_dict['name'], var_dict['field_type'])
-            )
-
-    ddi_dict['column_metadata'] = column_metadata
-    ddi_dict['columns'] = [r[0] for r in column_metadata]
-    ddi_dict['column_types'] = [r[1] for r in column_metadata]
+    ddi_dict = get_field_metadata(codebook, ddi_dict)
 
     return ddi_dict
 
