@@ -28,6 +28,6 @@ jobs:
       - name: Test with pytest
         run: poetry run pytest
 
-      - name: Coverage Badge
-        uses: we-cli/coverage-badge-action@v1.0.1
+      - name: coverage.py badge
+        uses: tj-actions/coverage-badge-py@v2.0.2
 
