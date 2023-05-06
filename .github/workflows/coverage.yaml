@@ -1,4 +1,9 @@
-...
+# .github/workflows/app.yaml
+name: PyTest
+on: push
+
+jobs:
+  badge:
     steps:
       - uses: actions/checkout@v2
         with: 
