@@ -1,3 +1,4 @@
+import os
 from unittest import TestCase
 import xml.etree.ElementTree as ET
 from src.pypums.parse_xml import (
@@ -23,7 +24,9 @@ class TestParseMetaDataXML(TestCase):
 
     def test_get_file_metadata(self):
         metadata = {}
-        root = ET.parse("./metadata_example.xml")
+        absolute_path = os.path.dirname(__file__)
+        full_path = os.path.join(absolute_path, "./metadata_example.xml")
+        root = ET.parse(os.path.expanduser(full_path))
         codebook = root.getroot()
         ddi_fields = [
             "column_metadata",
