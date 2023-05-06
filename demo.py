@@ -3,16 +3,17 @@ import pandas as pd
 from src.pypums.parse_xml import read_ipums_ddi
 from ipumspy import readers, ddi
 
+
 def read_ipums_micro(ddi, data_file_path, n_max=None):
     # Read the fixed-width data file using the extracted column information
     df = pd.read_fwf(
         data_file_path,
-        dtypes=ddi['column_dtypes'],
-        colspecs=ddi['column_specs'],
+        dtypes=ddi["column_dtypes"],
+        colspecs=ddi["column_specs"],
         header=None,
-        names=ddi['columns'],
+        names=ddi["columns"],
         nrows=n_max,
-        compression='gzip',
+        compression="gzip",
     )
 
     return df
@@ -30,8 +31,8 @@ def main():
         nrows=100,
     )
     print(ipums_df)
-    #print(json.dumps(cps_ddi, indent=2))
-    print(json.dumps(cps_ddi['file_metadata'], indent=2))
+    # print(json.dumps(cps_ddi, indent=2))
+    print(json.dumps(cps_ddi["file_metadata"], indent=2))
     # # print(json.dumps(cps_ddi['column_dtypes'], indent=2))
     # print(json.dumps(cps_ddi['YEAR'], indent=2))
     cps_data = read_ipums_micro(cps_ddi, data_file_path, n_max=100)
@@ -39,5 +40,5 @@ def main():
     # print(cps_data.describe().T)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

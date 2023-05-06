@@ -3,8 +3,8 @@ import xml.etree.ElementTree as ET
 from typing import Dict, Tuple
 
 # Handle namespaces
-DEFAULT_NAMESPACE = '{ddi:codebook:2_5}'
-NAMESPACES = {'ddi': 'ddi:codebook:2_5'}
+DEFAULT_NAMESPACE = "{ddi:codebook:2_5}"
+NAMESPACES = {"ddi": "ddi:codebook:2_5"}
 TITLE_XPATH = "ddi:docDscr/ddi:citation/ddi:titlStmt/"
 FILE_TEXT_XPATH = "ddi:fileDscr/ddi:fileTxt/"
 VARIABLES_XPATH = "ddi:dataDscr/ddi:var"
@@ -14,10 +14,12 @@ type_dict = {
     "contin": float,
 }
 
+
 def _to_int(x: str) -> int:
     assert isinstance(x, str)
     if x:
         return int(x)
+
 
 def remove_namespace(x: str) -> str:
     if x:
@@ -51,53 +53,59 @@ def get_field_metadata(xml_object, out_dict: Dict = {}) -> Dict:
         field_metadata = []
         # now get child stuff
         for child in list(var_elem):
-            if remove_namespace(child.tag) == 'txt':
-                var_dict['description'] = remove_namespace(child.text)
+            if remove_namespace(child.tag) == "txt":
+                var_dict["description"] = remove_namespace(child.text)
 
-            elif remove_namespace(child.tag) == 'labl':
-                var_dict['label'] = remove_namespace(child.text)
+            elif remove_namespace(child.tag) == "labl":
+                var_dict["label"] = remove_namespace(child.text)
 
-            elif remove_namespace(child.tag) == 'varFormat':
-                var_dict['schema'] = child.attrib.get("schema")
-                var_dict['data_type'] = child.attrib.get("type")
+            elif remove_namespace(child.tag) == "varFormat":
+                var_dict["schema"] = child.attrib.get("schema")
+                var_dict["data_type"] = child.attrib.get("type")
 
-            elif remove_namespace(child.tag) == 'catgry':
-                field_metadata.append({
-                    'category_value': child.findtext("ddi:catValu", namespaces=NAMESPACES),
-                    'category_label': child.findtext("ddi:labl", namespaces=NAMESPACES),
-                })
+            elif remove_namespace(child.tag) == "catgry":
+                field_metadata.append(
+                    {
+                        "category_value": child.findtext(
+                            "ddi:catValu", namespaces=NAMESPACES
+                        ),
+                        "category_label": child.findtext(
+                            "ddi:labl", namespaces=NAMESPACES
+                        ),
+                    }
+                )
 
-            elif remove_namespace(child.tag) == 'location':
-                var_dict['location_start_pos'] = _to_int(child.attrib.get("StartPos"))
-                var_dict['location_end_pos'] = _to_int(child.attrib.get("EndPos"))
-                var_dict['location_width'] = _to_int(child.attrib.get("width"))
+            elif remove_namespace(child.tag) == "location":
+                var_dict["location_start_pos"] = _to_int(child.attrib.get("StartPos"))
+                var_dict["location_end_pos"] = _to_int(child.attrib.get("EndPos"))
+                var_dict["location_width"] = _to_int(child.attrib.get("width"))
 
-            elif remove_namespace(child.tag) == 'concept':
-                var_dict['concept'] = remove_namespace(child.text)
+            elif remove_namespace(child.tag) == "concept":
+                var_dict["concept"] = remove_namespace(child.text)
 
             else:
-                field_metadata.append({
-                    'tag': remove_namespace(child.tag),
-                    'text': remove_namespace(child.text),
-                })
+                field_metadata.append(
+                    {
+                        "tag": remove_namespace(child.tag),
+                        "text": remove_namespace(child.text),
+                    }
+                )
 
-        var_dict['field_metadata'] = field_metadata
+        var_dict["field_metadata"] = field_metadata
 
-        out_dict[var_dict['name']] = var_dict
-        column_metadata.append(
-            (var_dict['name'], var_dict['field_type'])
-        )
+        out_dict[var_dict["name"]] = var_dict
+        column_metadata.append((var_dict["name"], var_dict["field_type"]))
         col_specs.append(
             # Note: Python uses 0 based indexing
-            (var_dict['location_start_pos'] - 1, var_dict['location_end_pos'])
+            (var_dict["location_start_pos"] - 1, var_dict["location_end_pos"])
         )
-        col_dtypes.append(type_dict[var_dict['field_type']])
+        col_dtypes.append(type_dict[var_dict["field_type"]])
 
-    out_dict['column_metadata'] = column_metadata
-    out_dict['columns'] = [r[0] for r in column_metadata]
-    out_dict['column_types'] = [r[1] for r in column_metadata]
-    out_dict['column_specs'] = col_specs
-    out_dict['column_dtypes'] = col_dtypes
+    out_dict["column_metadata"] = column_metadata
+    out_dict["columns"] = [r[0] for r in column_metadata]
+    out_dict["column_types"] = [r[1] for r in column_metadata]
+    out_dict["column_specs"] = col_specs
+    out_dict["column_dtypes"] = col_dtypes
     return out_dict
 
 
@@ -126,7 +134,7 @@ def read_ipums_ddi(file_path: str) -> Dict:
 
     # The codebook element is the root
     codebook = tree.getroot()
-    ddi_dict['file_metadata'] = get_file_metadata(codebook)
+    ddi_dict["file_metadata"] = get_file_metadata(codebook)
     ddi_dict = get_field_metadata(codebook, ddi_dict)
 
     return ddi_dict

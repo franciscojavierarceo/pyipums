@@ -2,12 +2,13 @@ import os
 import pandas as pd
 import xml.etree.ElementTree as ET
 
+
 def read_ipums_ddi(file_path):
     tree = ET.parse(os.path.expanduser(file_path))
     root = tree.getroot()
 
     # Handle namespaces
-    namespaces = {'ddi': 'ddi:codebook:2_5'}
+    namespaces = {"ddi": "ddi:codebook:2_5"}
 
     # Find the codebook element
     codebook = root
@@ -23,34 +24,33 @@ def read_ipums_ddi(file_path):
         var = {
             "name": var_elem.get("name"),
             "label": var_elem.get("labl"),
-            "categories": []
+            "categories": [],
         }
 
         # Extract category information
         for cat_elem in var_elem.findall("ddi:catgry", namespaces):
             cat = {
                 "code": cat_elem.findtext("ddi:catValu", namespaces=namespaces),
-                "label": cat_elem.get("labl")
+                "label": cat_elem.get("labl"),
             }
             var["categories"].append(cat)
 
         variables.append(var)
 
     # Create the DDI object
-    ddi = {
-        "file_id": file_id,
-        "file_title": file_title,
-        "variables": variables
-    }
+    ddi = {"file_id": file_id, "file_title": file_title, "variables": variables}
 
     return ddi
+
 
 def read_ipums_micro(ddi, data_file_path, n_max=None):
     # Extract column information from the DDI metadata
     col_specs = []
     col_names = []
     for var in ddi["variables"]:
-        col_specs.append((int(var["categories"][0]["code"]) - 1, int(var["categories"][-1]["code"])))
+        col_specs.append(
+            (int(var["categories"][0]["code"]) - 1, int(var["categories"][-1]["code"]))
+        )
         col_names.append(var["name"])
 
     # Read the fixed-width data file using the extracted column information
@@ -60,9 +60,9 @@ def read_ipums_micro(ddi, data_file_path, n_max=None):
         header=None,
         names=col_names,
         nrows=n_max,
-        compression='gzip',
+        compression="gzip",
     )
-    
+
     return df
 
 
@@ -74,5 +74,6 @@ def main():
     cps_data = read_ipums_micro(cps_ddi, data_file_path, n_max=1000)
     print(cps_data.head())
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
