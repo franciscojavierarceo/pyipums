@@ -31,13 +31,9 @@ def main():
         nrows=100,
     )
     print(ipums_df)
-    # print(json.dumps(cps_ddi, indent=2))
     print(json.dumps(cps_ddi["file_metadata"], indent=2))
-    # # print(json.dumps(cps_ddi['column_dtypes'], indent=2))
-    # print(json.dumps(cps_ddi['YEAR'], indent=2))
     cps_data = read_ipums_micro(cps_ddi, data_file_path, n_max=100)
     print(cps_data.head())
-    # print(cps_data.describe().T)
 
 
 if __name__ == "__main__":
