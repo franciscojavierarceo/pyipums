@@ -28,6 +28,3 @@ jobs:
       - name: Test with pytest
         run: poetry run pytest
 
-#      - name: coverage.py badge
-#        uses: tj-actions/coverage-badge-py@v2.0.2
-
