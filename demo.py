@@ -1,6 +1,6 @@
 import json
 import pandas as pd
-from src.pypums.parse_xml import read_ipums_ddi
+from src.pyipums.parse_xml import read_ipums_ddi
 from ipumspy import readers, ddi
 
 

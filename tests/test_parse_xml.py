@@ -1,7 +1,7 @@
 import os
 from unittest import TestCase
 import xml.etree.ElementTree as ET
-from src.pypums.parse_xml import (
+from src.pyipums.parse_xml import (
     read_ipums_ddi,
     _to_int,
     remove_namespace,

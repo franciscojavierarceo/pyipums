@@ -1,6 +1,6 @@
 [tool.poetry]
-name = "pypums"
-version = "0.1.0"
+name = "pyipums"
+version = "0.0.1"
 description = "A Python package to explore IPUMS data."
 authors = ["Francisco Javier Arceo <franciscojavierarceo@users.noreply.github.com>"]
 license = "MIT"
@@ -14,3 +14,7 @@ ipumspy = "^0.3.0"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[project.urls]
+"Homepage" = "https://github.com/franciscojavierarceo/pypums"
+"Bug Tracker" = "https://github.com/franciscojavierarceo/pypums/issues"
