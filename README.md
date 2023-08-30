@@ -1,5 +1,7 @@
 # PyIPUMS
 
+![pypums (1)](https://github.com/franciscojavierarceo/pyipums/assets/4163062/398bb2b5-8974-4eb9-84a0-92938da184c1)
+
 PyIPUMS is a library for working with data from [IPUMS](https://www.ipums.org/).
 
 # Example
