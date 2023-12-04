@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pyipums"
-version = "0.0.1"
+version = "0.0.3"
 description = "A Python package to explore IPUMS data."
 readme = "README.md"
 authors = ["Francisco Javier Arceo <franciscojavierarceo@users.noreply.github.com>"]
