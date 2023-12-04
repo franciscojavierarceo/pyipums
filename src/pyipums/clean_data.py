@@ -31,13 +31,13 @@ EDUC_ATTAINMENT = {
 
 def map_codes(ddi: ddi.Codebook, xdf: pd.DataFrame, xvar: str):
     g = {v: k for k, v in ddi.get_variable_info(xvar).codes.items()}
-    res = xdf[xvar].apply(lamcolumn_to_bucket_mapa x: g.get(x, None))
+    res = xdf[xvar].apply(lambda x: g.get(x, None))
     return res
 
 
 class IpumsCleaner:
     def __init__(self, df: pd.DataFrame, ddi_codebook: ddi.Codebook):
-        self.df = self.df
+        self.df = df
         self.ddi_codebook = ddi_codebook
 
     def clean_cps_income(self):
@@ -51,12 +51,12 @@ class IpumsCleaner:
 
     def clean_educ_attainment(self):
         self.df['Educational Attainment'] = self.df['Education'].apply(
-            lamcolumn_to_bucket_mapa x: EDUC_ATTAINMENT.get(x)
+            lambda x: EDUC_ATTAINMENT.get(x)
         ).astype(str)
 
     def clean_variables(self):
         self.df['Occupation'] = map_codes(self.ddi_codebook, self.df, 'OCC2010')
-        self.df['Education'] = map_codes(self.di_codebook, self.df, 'EDUC')
+        self.df['Education'] = map_codes(self.ddi_codebook, self.df, 'EDUC')
         self.df['Birthplace'] = map_codes(self.ddi_codebook, self.df, 'BPL')
         self.df['Marital_Status'] = map_codes(self.ddi_codebook, self.df, 'MARST')
         self.df['Nativity'] = map_codes(self.ddi_codebook, self.df, 'NATIVITY')
@@ -65,7 +65,6 @@ class IpumsCleaner:
         self.df['Asian'] = map_codes(self.ddi_codebook, self.df, 'ASIAN')
         self.df['Race'] = map_codes(self.ddi_codebook, self.df, 'RACE')
         self.df['Veteran_Status'] = map_codes(self.ddi_codebook, self.df, 'VETSTAT')
-
 
     def clean_wages(self):
         # Aggregating Wages
@@ -111,7 +110,7 @@ class IpumsCleaner:
             self.df['Investment Income'].astype(float) / self.df['INCTOT'].astype(float))
 
         self.df['Government Income as Percent of Total Income'] = np.where(
-            self.df['INCTOT_2'] == 0,
+            self.df['INCTOT'] == 0,
             0,
             self.df['Government Income'].astype(float) / self.df['INCTOT'].astype(float))
 
@@ -135,3 +134,9 @@ class IpumsCleaner:
         self.df['Weighted Government Income as Percent of Total Income'] = self.df['Government Income as Percent of Total Income'] * self.df['ASECWT']
         self.df['Weighted Investment Income as Percent of Total Income'] = self.df['Investment Income as Percent of Total Income'] * self.df['ASECWT']
         self.df['Weighted Wage Income as Percent of Total Income'] = self.df['Wage Income as Percent of Total Income'] * self.df['ASECWT']
+
+    def clean_data(self):
+        self.clean_variables()
+        self.clean_cps_income()
+        self.clean_educ_attainment()
+        self.clean_wages()
