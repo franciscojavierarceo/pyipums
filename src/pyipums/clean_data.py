@@ -140,3 +140,4 @@ class IpumsCleaner:
         self.clean_cps_income()
         self.clean_educ_attainment()
         self.clean_wages()
+        return self.df

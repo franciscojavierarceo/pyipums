@@ -4,7 +4,7 @@ from unittest import TestCase
 import pandas as pd
 from ipumspy import readers, ddi
 from src.pyipums.parse_xml import read_ipums_ddi
-from src.pyipums.clean_data import IpumsCleaner
+from src.pyipums.clean_data import IpumsCleaner, EDUC_ATTAINMENT
 
 xvars = [
     'AGE',
@@ -77,7 +77,7 @@ class TestReadASECData(TestCase):
 
         df = IpumsCleaner(ipums_df, ddi_codebook).clean_data()
         self.assertEqual(
-            df["Educational Attainment"].unique(),
-            1,
+            set(df['Educational Attainment'].unique()),
+            set(EDUC_ATTAINMENT.values()),
         )
 
