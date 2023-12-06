@@ -49,6 +49,8 @@ class IpumsCleaner:
 
             self.df[f"{col}"] = self.df[col].replace(invalid_values, np.nan)
 
+        self.df['INCTOT'] = self.df['INCTOT'].astype(float)
+
     def clean_educ_attainment(self):
         self.df['Educational Attainment'] = self.df['Education'].apply(
             lambda x: EDUC_ATTAINMENT.get(x)
