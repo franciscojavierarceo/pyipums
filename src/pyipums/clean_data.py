@@ -68,6 +68,12 @@ class IpumsCleaner:
         self.df["Race"] = map_codes(self.ddi_codebook, self.df, "RACE")
         self.df["Veteran_Status"] = map_codes(self.ddi_codebook, self.df, "VETSTAT")
         self.df["Age"] = self.df["AGE"].astype(float)
+        self.df['Age Bucket'] = ''
+        self.df.loc[(self.df['Age'] < 15), 'Age Bucket'] = '<15'
+        self.df.loc[(self.df['Age'] >= 15) & (self.df['Age'] <= 24), 'Age Bucket'] = '15-24'
+        self.df.loc[(self.df['Age'] >= 25) & (self.df['Age'] <= 54), 'Age Bucket'] = '25-54'
+        self.df.loc[(self.df['Age'] >= 55) & (self.df['Age'] <= 64), 'Age Bucket'] = '55-64'
+        self.df.loc[(self.df['Age'] >= 65), 'Age Bucket'] = '65+'
 
     def clean_wages(self):
         # Aggregating Wages
