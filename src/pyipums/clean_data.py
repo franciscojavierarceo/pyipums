@@ -9,7 +9,7 @@ EDUC_VOC = "Vocational Degree"
 EDUC_BS = "Bachelor's degree"
 EDUC_GRAD = "Graduate degree"
 EDUC_ATTAINMENT = {
-    "NIU or blank": "Missing",
+    "NIU or blank": "Not in Universe",
     "Grades 1, 2, 3, or 4": EDUC_LT_HS,
     "Grades 5 or 6": EDUC_LT_HS,
     "Grades 7 or 8": EDUC_LT_HS,
