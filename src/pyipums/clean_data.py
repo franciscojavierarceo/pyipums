@@ -64,6 +64,7 @@ class IpumsCleaner:
         self.df["Nativity"] = map_codes(self.ddi_codebook, self.df, "NATIVITY")
         self.df["Class_of_worker"] = map_codes(self.ddi_codebook, self.df, "CLASSWKR")
         self.df["Hispanic"] = map_codes(self.ddi_codebook, self.df, "HISPAN")
+        self.df["Labor Force"] = map_codes(self.ddi_codebook, self.df, "LABFORCE")
         self.df["Hispanic or Not"] = np.where(
             self.df["Hispanic"] != "Not Hispanic", "Hispanic", "Not Hispanic"
         )
