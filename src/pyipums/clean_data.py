@@ -64,7 +64,9 @@ class IpumsCleaner:
         self.df["Nativity"] = map_codes(self.ddi_codebook, self.df, "NATIVITY")
         self.df["Class_of_worker"] = map_codes(self.ddi_codebook, self.df, "CLASSWKR")
         self.df["Hispanic"] = map_codes(self.ddi_codebook, self.df, "HISPAN")
-        self.df['Hispanic or Not'] = np.where(self.df['Hispanic'] != 'Not Hispanic', 'Hispanic', 'Not Hispanic')
+        self.df["Hispanic or Not"] = np.where(
+            self.df["Hispanic"] != "Not Hispanic", "Hispanic", "Not Hispanic"
+        )
         self.df["Asian"] = map_codes(self.ddi_codebook, self.df, "ASIAN")
         self.df["Race"] = map_codes(self.ddi_codebook, self.df, "RACE")
         self.df["Veteran_Status"] = map_codes(self.ddi_codebook, self.df, "VETSTAT")
@@ -81,6 +83,11 @@ class IpumsCleaner:
             (self.df["Age"] >= 55) & (self.df["Age"] <= 64), "Age Bucket"
         ] = "55-64"
         self.df.loc[(self.df["Age"] >= 65), "Age Bucket"] = "65+"
+        self.df["Age Bucket"] = pd.CategoricalIndex(
+            self.df["Age Bucket"],
+            ordered=True,
+            categories=["<15", "15-24", "25-54", "55-64", "65+"],
+        )
 
     def clean_wages(self):
         # Aggregating Wages
