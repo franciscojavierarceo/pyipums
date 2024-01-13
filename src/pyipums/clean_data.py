@@ -8,7 +8,7 @@ EDUC_HS = "High school diploma or equivalent"
 EDUC_VOC = "Vocational Degree"
 EDUC_BS = "Bachelor's degree"
 EDUC_GRAD = "Graduate degree"
-EDUC_ATTAINMENT = {
+ASEC_EDUC_ATTAINMENT = {
     "NIU or blank": "Not in Universe",
     "Grades 1, 2, 3, or 4": EDUC_LT_HS,
     "Grades 5 or 6": EDUC_LT_HS,
@@ -28,14 +28,74 @@ EDUC_ATTAINMENT = {
     "Professional school degree": EDUC_GRAD,
 }
 
+ACS_EDUC_ATTAINMENT = {
+    'Regular high school diploma': EDUC_HS,
+    "Bachelor's degree": EDUC_BS,
+    '1 or more years of college credit, no degree': EDUC_HS,
+    "Master's degree": EDUC_GRAD,
+    "Associate's degree, type not specified": EDUC_HS,
+    'Some college, but less than 1 year': EDUC_HS,
+    'No schooling completed': EDUC_LT_HS,
+    'GED or alternative credential': EDUC_HS,
+    'N/A': "Not in Universe",
+    'Grade 11': EDUC_LT_HS,
+    'Grade 10': EDUC_LT_HS,
+    'Grade 9': EDUC_LT_HS,
+    'Grade 8': EDUC_LT_HS,
+    "Professional degree beyond a bachelor's degree": EDUC_GRAD,
+    '12th grade, no diploma': EDUC_LT_HS,
+    'Grade 6': EDUC_LT_HS,
+    'Grade 7': EDUC_LT_HS,
+    'Doctoral degree': EDUC_GRAD,
+    'Nursery school, preschool': EDUC_LT_HS,
+    'Grade 5': EDUC_LT_HS,
+    'Grade 3': EDUC_LT_HS,
+    'Grade 4': EDUC_LT_HS,
+    'Kindergarten': EDUC_LT_HS,
+    'Grade 2': EDUC_LT_HS,
+    'Grade 1': EDUC_LT_HS,
+}
+
 
 def map_codes(ddi: ddi.Codebook, xdf: pd.DataFrame, xvar: str):
     g = {v: k for k, v in ddi.get_variable_info(xvar).codes.items()}
     res = xdf[xvar].apply(lambda x: g.get(x, None))
     return res
 
+class IpumsAcsCleaner:
+    def __init__(self, df: pd.DataFrame, ddi_codebook: ddi.Codebook):
+        self.df = df
+        self.ddi_codebook = ddi_codebook
 
-class IpumsCleaner:
+    def clean_variables(self):
+        self.df["Sex"] = map_codes(self.ddi_codebook, self.df, "SEX")
+        self.df["State"] = map_codes(self.ddi_codebook, self.df, "STATEFIP")
+        self.df["Occupation"] = map_codes(self.ddi_codebook, self.df, "OCC2010")
+        self.df["Education"] = map_codes(self.ddi_codebook, self.df, "EDUCD")
+        self.df["Degree"] = map_codes(self.ddi_codebook, self.df, "DEGFIELDD")
+        self.df["Industry"] = map_codes(self.ddi_codebook, self.df, "IND1990")
+        self.df["Hispanic"] = map_codes(self.ddi_codebook, self.df, "HISPAN")
+        self.df["Language Spoken"] = map_codes(self.ddi_codebook, self.df, "LANGUAGE")
+        self.df["Speak English"] = map_codes(self.ddi_codebook, self.df, "SPEAKENG")
+
+        self.df["Hispanic or Not"] = np.where(
+            self.df["Hispanic"] != "Not Hispanic", "Hispanic", "Not Hispanic"
+        )
+        self.df["Race"] = map_codes(self.ddi_codebook, self.df, "RACE")
+        self.df["Birthplace"] = map_codes(self.ddi_codebook, self.df, "BPL")
+
+
+    def clean_educ_attainment(self):
+        self.df["Educational Attainment"] = (
+            self.df["Education"].apply(lambda x: ACS_EDUC_ATTAINMENT.get(x)).astype(str)
+        )
+
+    def clean_data(self):
+        self.clean_variables()
+        self.clean_educ_attainment()
+        return self.df
+
+class IpumsAsecCleaner:
     def __init__(self, df: pd.DataFrame, ddi_codebook: ddi.Codebook):
         self.df = df
         self.ddi_codebook = ddi_codebook
@@ -53,7 +113,7 @@ class IpumsCleaner:
 
     def clean_educ_attainment(self):
         self.df["Educational Attainment"] = (
-            self.df["Education"].apply(lambda x: EDUC_ATTAINMENT.get(x)).astype(str)
+            self.df["Education"].apply(lambda x: ASEC_EDUC_ATTAINMENT.get(x)).astype(str)
         )
 
     def clean_variables(self):
