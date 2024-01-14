@@ -76,8 +76,8 @@ class IpumsAcsCleaner:
         self.df["Industry"] = map_codes(self.ddi_codebook, self.df, "IND1990")
         self.df["Hispanic"] = map_codes(self.ddi_codebook, self.df, "HISPAN")
         self.df["Language Spoken"] = map_codes(self.ddi_codebook, self.df, "LANGUAGE")
+        self.df["Labor Force"] = map_codes(self.ddi_codebook, self.df, "LABFORCE")
         self.df["Speak English"] = map_codes(self.ddi_codebook, self.df, "SPEAKENG")
-
         self.df["Hispanic or Not"] = np.where(
             self.df["Hispanic"] != "Not Hispanic", "Hispanic", "Not Hispanic"
         )
