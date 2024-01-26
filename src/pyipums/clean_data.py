@@ -233,6 +233,7 @@ class IpumsAsecCleaner:
             "Wage Income as Percent of Total Income",
         ] = 1
 
+        self.df["Total Income"] = self.df["INCTOT"]
         self.df["Weighted Total Income"] = self.df["INCTOT"] * self.df["ASECWT"]
         self.df["Weighted Government Income"] = (
             self.df["Government Income"] * self.df["ASECWT"]
