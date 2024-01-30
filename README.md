@@ -7,7 +7,7 @@ PyIPUMS is a library for working with data from [IPUMS](https://www.ipums.org/).
 # Example
 
 Example that provides the IPUMS metadata in a dictionary.
-```
+```python
 import json
 import pandas as pd
 from src.pyipums.parse_xml import read_ipums_ddi
