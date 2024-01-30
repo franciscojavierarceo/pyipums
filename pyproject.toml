@@ -5,6 +5,10 @@ description = "A Python package to explore IPUMS data."
 readme = "README.md"
 authors = ["Francisco Javier Arceo <franciscojavierarceo@users.noreply.github.com>"]
 license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/franciscojavierarceo/pypums"
+repository = "https://github.com/franciscojavierarceo/pypums"
+keywords = ["ipums", "census"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
@@ -17,6 +21,5 @@ pandas = "1.5.2"
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
-[project.urls]
-"Homepage" = "https://github.com/franciscojavierarceo/pypums"
+[tool.project.urls]
 "Bug Tracker" = "https://github.com/franciscojavierarceo/pypums/issues"
